@@ -1,10 +1,12 @@
+package com.mycompany.libraryreservation;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  *
 */
 
-import com.mycompany.lab3.ServerConnection;
+import com.mycompany.libraryreservation.ServerConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,5 +33,6 @@ public class Client {
                   e.printStackTrace();
               }
           }
-              System.exit(0);
-        System.exit(0); }}///////// Hello im noora
+              System.exit(0);}}
+
+       

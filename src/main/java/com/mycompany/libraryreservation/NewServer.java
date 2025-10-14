@@ -1,5 +1,5 @@
 
-package com.mycompany.lab3;
+package com.mycompany.libraryreservation;
 
 
 import java.io.*; 
