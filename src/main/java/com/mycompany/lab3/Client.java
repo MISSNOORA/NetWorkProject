@@ -31,4 +31,5 @@ public class Client {
                   e.printStackTrace();
               }
           }
-              System.exit(0); }}
+              System.exit(0);
+        System.exit(0); }}
