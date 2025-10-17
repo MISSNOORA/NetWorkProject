@@ -56,6 +56,7 @@ public class RegistrationGUI extends JFrame {
         btnRegister.setBackground(new Color(200, 230, 255));
         btnRegister.setFocusPainted(false);
         add(btnRegister);
+        
 
         try {
             socket = new Socket("localhost", 9090);
