@@ -12,18 +12,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+
 public class Client {
     private static final String Server_IP="localhost";
     private static final int Server_port=9090;
  
         public static void main(String[] args) throws IOException{
-          try(Socket socket = new Socket (Server_IP,Server_port)) {
+          try(Socket socket = new Socket (Server_IP,Server_port)) {// connecting to server
+              System.out.println("Connected to server!");
+              
               ServerConnection servcon=new ServerConnection(socket); //create thread for each socket
               BufferedReader keyboard=new BufferedReader (new InputStreamReader(System.in));
               PrintWriter out=new PrintWriter(socket.getOutputStream(),true);// allow the server to send me anything even if i didn't request it
               new Thread (servcon).start(); 
+              
               try{
-                  while(true){
+                  while(true){// keeps reading user input and sens it to server
                       System.out.println("> ");
                       String command=keyboard.readLine();                     
                       if(command.equals("quit")) break;
@@ -33,7 +38,8 @@ public class Client {
                   e.printStackTrace();
               }
           }
-              System.exit(0);}}
+            System.out.println("Client closed.");
+             System.exit(0);}}
 /// ghena here 
 //Alya
 //norah
