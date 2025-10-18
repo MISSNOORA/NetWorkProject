@@ -1,0 +1,95 @@
+Library: Central Library
+Topic: Computer Science
+Book: Data Structures in Java
+Book: Algorithms Made Easy
+Book: Database Systems
+Book: Operating Systems
+Book: Computer Networks
+Topic: Mathematics
+Book: Algebra Basics
+Book: Calculus I
+Book: Geometry Fundamentals
+Book: Probability for Beginners
+Book: Statistics Essentials
+Topic: Literature
+Book: Pride and Prejudice
+Book: The Great Gatsby
+Book: To Kill a Mockingbird
+Book: Jane Eyre
+Book: 1984
+Topic: History
+Book: Ancient Civilizations
+Book: World War II
+Book: Modern History
+Book: The Industrial Revolution
+Book: History of Science
+Topic: Physics
+Book: Quantum Mechanics
+Book: Classical Mechanics
+Book: Thermodynamics
+Book: Electromagnetism
+Book: Relativity
+
+Library: City Library
+Topic: Art
+Book: Painting 101
+Book: Modern Art
+Book: Sculpture Design
+Book: Drawing Techniques
+Book: Art History
+Topic: Technology
+Book: AI Revolution
+Book: Web Development Basics
+Book: Cybersecurity Essentials
+Book: Cloud Computing
+Book: Robotics Intro
+Topic: Business
+Book: Startup Strategies
+Book: Marketing Basics
+Book: Accounting Principles
+Book: Economics 101
+Book: Management Skills
+Topic: Travel
+Book: Exploring Europe
+Book: Asian Adventures
+Book: African Safaris
+Book: American Road Trips
+Book: The World Wonders
+Topic: Cooking
+Book: Baking for Beginners
+Book: International Dishes
+Book: Mastering Sauces
+Book: Healthy Meals
+Book: Desserts Galore
+
+Library: Adventure Library
+Topic: Fantasy
+Book: Harry Potter
+Book: The Hobbit
+Book: The Witcher
+Book: Game of Thrones
+Book: Eragon
+Topic: Mystery
+Book: Sherlock Holmes
+Book: Gone Girl
+Book: The Girl with the Dragon Tattoo
+Book: The Da Vinci Code
+Book: Big Little Lies
+Topic: Romance
+Book: Me Before You
+Book: The Notebook
+Book: Twilight
+Book: The Fault in Our Stars
+Book: Eleanor & Park
+Topic: Horror
+Book: IT
+Book: The Shining
+Book: Dracula
+Book: Frankenstein
+Book: Bird Box
+Topic: Science Fiction
+Book: Dune
+Book: Ender’s Game
+Book: The Martian
+Book: Ready Player One
+Book: Foundation
