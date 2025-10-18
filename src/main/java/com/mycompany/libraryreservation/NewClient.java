@@ -10,13 +10,15 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.io.*;
+import java.util.*;
 
-class NewClient implements Runnable
-{
+class NewClient implements Runnable{
 private Socket client;
 private BufferedReader in;
 private PrintWriter out;
 private ArrayList<NewClient> clients;
+private static final Map<String, Map<String, List<String>>> LIB_DATA = DataStorage.readLibraries();
 
   public NewClient (Socket c,ArrayList<NewClient> clients) throws IOException
   {
@@ -26,32 +28,84 @@ private ArrayList<NewClient> clients;
     out=new PrintWriter(client.getOutputStream(),true); 
   }
   @Override
-  public void run ()
-  {
-   try{
-    while (true){
-        String request=in.readLine();  //the in means the inputstream in the socket
-                outToAll(request); //send it to all clients connected
-   
+    public void run() {
+        try {
+            String message;
+            while ((message = in.readLine()) != null) {
+                handleMessage(message);
+            }
+        } catch (IOException e) {
+            System.out.println("Client disconnected.");
+        } finally {
+            try { in.close(); out.close(); client.close(); } catch (IOException e) {}
+        }
     }
-}
-   catch (IOException e){
-       System.err.println("IO exception in new client class");
-       System.err.println(e.getStackTrace());
-   }
-finally{
-    out.close();
-       try {
-           in.close();
-       } catch (IOException ex) {
-          ex.printStackTrace();
-       }
-}
-  }
-    private void outToAll(String substring) {
-for (NewClient aclient:clients){ //loop to send the message to each client in the list
-   aclient.out.println(substring); 
-}
+
+
+    private void handleMessage(String msg) {
+        System.out.println("Received: " + msg);
+        String[] parts = msg.split("\\|");
+        if (msg.startsWith("REGISTER|")) {
+            if (parts.length < 3) {
+                out.println("REGISTER|FAIL|Wrong format");
+                return;
+            }
+            String name = parts[1];
+            String password = parts[2];
+
+            // Save user info to file
+            DataStorage.saveUser(name, password);
+            out.println("Registeration was successfully");
+        }
+       if (msg.equals("GETLIBRARIES")) {
+            out.println(String.join("|", LIB_DATA.keySet()));
+            return;
+        }
+
+        if (msg.startsWith("GETTOPICS|")) {
+            if (parts.length < 2 || !LIB_DATA.containsKey(parts[1])) { out.println(""); return; }
+            out.println(String.join("|", LIB_DATA.get(parts[1]).keySet()));
+            return;
+        }
+
+        if (msg.startsWith("GETBOOKS|")) {
+            if (parts.length < 3) { out.println(""); return; }
+            Map<String,List<String>> topics = LIB_DATA.get(parts[1]);
+            if (topics == null) { out.println(""); return; }
+            List<String> books = topics.get(parts[2]);
+            if (books == null) { out.println(""); return; }
+            out.println(String.join("|", books));
+            return;
+        }
+
+        if (msg.startsWith("RESERVEBOOK|")) {
+            if (parts.length < 6) { out.println("RESERVEBOOK|FAIL|format"); return; }
+            String user = parts[1], lib = parts[2], topic = parts[3], book = parts[4], date = parts[5];
+
+            // guard against typos vs file content
+            if (!LIB_DATA.containsKey(lib) ||
+                !LIB_DATA.get(lib).containsKey(topic) ||
+                !LIB_DATA.get(lib).get(topic).contains(book)) {
+                out.println("RESERVEBOOK|FAIL|unknown selection");
+                return;
+            }
+
+            if (DataStorage.isAlreadyReserved(lib, topic, book, date)) {
+                out.println("RESERVEBOOK|FAIL|Already reserved on " + date);
+            } else {
+                DataStorage.saveReservation(user, lib, topic, book, date);
+                out.println("RESERVEBOOK|OK|Reserved " + book + " on " + date);
+            }
+            return;
+        }
+
+        out.println("UNKNOWN");
+    
+
+    //private void outToAll(String msg) {
+        //for (NewClient c : clients) {
+           // c.out.println(msg);
+        //}
     }
 }
 

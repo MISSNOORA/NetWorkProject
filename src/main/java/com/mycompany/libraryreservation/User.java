@@ -1,7 +1,7 @@
 
 package com.mycompany.libraryreservation;
 
-// معلومات الكلاينت
+// معلومات اليوزر
 
 
 public class User {
