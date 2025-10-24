@@ -6,37 +6,30 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.io.PrintWriter;
 
 /**
- * ReservationManager
+ * ReservationManager 
  */
 public class ReservationManager {
 
-    //Library -> Topic -> List<Book>
+    // Library -> Topic -> List<BookDisplay>  
     private final Map<String, Map<String, List<String>>> libData;
-
-    
     private final CopyOnWriteArrayList<PrintWriter> clientOutputs = new CopyOnWriteArrayList<>();
 
     public ReservationManager(Map<String, Map<String, List<String>>> libData) {
         this.libData = Objects.requireNonNull(libData, "libData is null");
     }
 
-    /* ====================== تسجيل العملا ====================== */
+    /* ======================تسجيل العملاء====================== */
 
-    /** سجل PrintWriter عميل بشكل مباشر. */
     public void registerClientOutput(PrintWriter out) {
         if (out != null) clientOutputs.add(out);
     }
 
-    
     public void registerClient(Object clientMaybe) {
         try {
             if (clientMaybe == null) return;
-            
             PrintWriter out = (PrintWriter) clientMaybe.getClass().getMethod("getOut").invoke(clientMaybe);
             registerClientOutput(out);
-        } catch (Exception ignore) {
-            
-        }
+        } catch (Exception ignore) { }
     }
 
     private void notifyAllClients(String message) {
@@ -45,17 +38,43 @@ public class ReservationManager {
         }
     }
 
+    /* ======================  تحويل  ID   ====================== */
+
+    private String toDisplayBook(String library, String topic, String bookArg) {
+        if (bookArg == null) return null;
+        String s = bookArg.trim();
+
+        Map<String, List<String>> topics = libData.get(library);
+        if (topics == null) return s;
+        List<String> books = topics.get(topic);
+        if (books == null) return s;
+
+       
+        if (books.contains(s)) return s;
+
+        
+        for (String entry : books) {
+            int dash = entry.indexOf(" - ");
+            if (dash > 0) {
+                String id = entry.substring(0, dash).trim();
+                if (s.equals(id)) return entry; 
+            }
+        }
+        
+        return s;
+    }
+
     /* ====================== التحقق والعرض ====================== */
 
-    
-    public boolean selectionExists(String library, String topic, String book) {
+    public boolean selectionExists(String library, String topic, String bookInput) {
+        String display = toDisplayBook(library, topic, bookInput);
         Map<String, List<String>> topics = libData.get(library);
         if (topics == null) return false;
         List<String> books = topics.get(topic);
-        return books != null && books.contains(book);
+        return books != null && books.contains(display);
     }
 
-   
+
     public List<String> getAvailableBooks(String library, String topic, String dateOrNull) {
         Map<String, List<String>> topics = libData.get(library);
         if (topics == null) return Collections.emptyList();
@@ -68,18 +87,17 @@ public class ReservationManager {
         }
 
         List<String> available = new ArrayList<>();
-        for (String b : books) {
+        for (String displayTitle : books) {
             
-            if (!DataStorage.isAlreadyReserved(library, topic, b, dateOrNull)) {
-                available.add(b);
+            if (!DataStorage.isAlreadyReserved(library, topic, displayTitle, dateOrNull)) {
+                available.add(displayTitle);
             }
         }
         return available;
     }
 
-    /* ====================== الحجز ====================== */
+    /* ====================== الحجز/الإلغاء ====================== */
 
-    
     public static final class Result {
         public final boolean ok;
         public final String message;
@@ -89,40 +107,37 @@ public class ReservationManager {
         @Override public String toString() { return (ok ? "OK: " : "FAIL: ") + message; }
     }
 
-    
-    public synchronized Result reserve(String user, String library, String topic, String book, String date) {
-        // تحقق المدخلات الأساسية
-        if (isBlank(user, library, topic, book, date))
+    public synchronized Result reserve(String user, String library, String topic, String bookInput, String date) {
+        
+        String displayTitle = toDisplayBook(library, topic, bookInput);
+
+        if (isBlank(user, library, topic, displayTitle, date))
             return Result.fail("Missing inputs.");
 
-        // تحقق التكوين الصحيح
-        if (!selectionExists(library, topic, book))
+        if (!selectionExists(library, topic, displayTitle))
             return Result.fail("Unknown selection.");
 
-        // منع التكرار لنفس التاريخ
-        if (DataStorage.isAlreadyReserved(library, topic, book, date)) {
+        if (DataStorage.isAlreadyReserved(library, topic, displayTitle, date)) {
             return Result.fail("Already reserved on " + date + ".");
         }
 
-        // حفظ في السجل 
         try {
-            DataStorage.saveReservation(user, library, topic, book, date);
+            DataStorage.saveReservation(user, library, topic, displayTitle, date);
         } catch (Exception e) {
             return Result.fail("File error while saving.");
         }
 
-        //  إشعار تحديث
-        notifyAllClients("UPDATE|RESERVED|" + library + "|" + topic + "|" + book + "|" + date + "|by|" + user);
-
-        return Result.ok("Reserved " + book + " on " + date + ".");
+        notifyAllClients("UPDATE|RESERVED|" + library + "|" + topic + "|" + displayTitle + "|" + date + "|by|" + user);
+        return Result.ok("Reserved " + displayTitle + " on " + date + ".");
     }
 
-    /* إلغاء حجز */
-    public synchronized Result cancel(String user, String library, String topic, String book, String date) {
+    public synchronized Result cancel(String user, String library, String topic, String bookInput, String date) {
         
-        File f = new File("reservaCons.txt");
+        String displayTitle = toDisplayBook(library, topic, bookInput);
+
+        File f = new File("reservations.txt");
         if (!f.exists()) return Result.fail("No records file.");
-        File tmp = new File("reservaCons.tmp");
+        File tmp = new File("reservations.tmp");
         boolean removed = false;
 
         try (BufferedReader br = new BufferedReader(new FileReader(f));
@@ -132,7 +147,7 @@ public class ReservationManager {
                 String[] p = line.split("\\|");
                 if (p.length == 5 &&
                     p[0].equals(user) && p[1].equals(library) &&
-                    p[2].equals(topic) && p[3].equals(book) && p[4].equals(date)) {
+                    p[2].equals(topic) && p[3].equals(displayTitle) && p[4].equals(date)) {
                     removed = true; 
                     continue;
                 }
@@ -143,16 +158,14 @@ public class ReservationManager {
         }
 
         if (!removed) { tmp.delete(); return Result.fail("Reservation not found."); }
-
         if (!f.delete() || !tmp.renameTo(f)) {
             return Result.fail("Failed to finalize cancellation.");
         }
 
-        notifyAllClients("UPDATE|CANCELLED|" + library + "|" + topic + "|" + book + "|" + date + "|by|" + user);
-        return Result.ok("Cancelled reservation for " + book + " on " + date + ".");
+        notifyAllClients("UPDATE|CANCELLED|" + library + "|" + topic + "|" + displayTitle + "|" + date + "|by|" + user);
+        return Result.ok("Cancelled reservation for " + displayTitle + " on " + date + ".");
     }
 
-    
 
     private static boolean isBlank(String... s) {
         for (String x : s) if (x == null || x.isBlank()) return true;
