@@ -8,6 +8,25 @@ import java.util.*;
 // تخزين اي بيانات في ملف
 public class DataStorage {
     
+
+    public static boolean usernameExists(String username) {
+        File f = new File("users.txt");
+        if (!f.exists()) return false; // no users yet
+
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split("\\|");
+                if (parts.length >= 1 && parts[0].equalsIgnoreCase(username)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error checking username: " + e.getMessage());
+        }
+        return false;
+    }
+
     public static void saveUser(String name, String password) {
         try {
             FileWriter writer = new FileWriter("users.txt", true);

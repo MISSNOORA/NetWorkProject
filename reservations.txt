@@ -1,2 +1,10 @@
 alsaiari|City Library|Business|Management Skills|2025-10-18
 noora|Adventure Library|Romance|Me Before You|2025-10-19
+norah|City Library|Art|Sculpture Design|2025-10-16
+raghad|Central Library|Computer Science|Data Structures in Java|2025-10-16
+nnn|City Library|Technology|AI Revolution|2025-10-16
+nnn|City Library|Technology|AI Revolution|2025-10-17
+nnn|City Library|Technology|AI Revolution|2025-10-18
+nnn|City Library|Technology|AI Revolution|2025-10-19
+nnn|City Library|Technology|AI Revolution|2025-10-20
+nnn|City Library|Technology|AI Revolution|null

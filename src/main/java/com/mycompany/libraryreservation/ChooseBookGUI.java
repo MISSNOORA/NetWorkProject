@@ -1,4 +1,3 @@
-
 package com.mycompany.libraryreservation;
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +44,7 @@ public class ChooseBookGUI extends JFrame{
         lblDate.setBounds(50, 150, 200, 25);
         add(lblDate);
 
-        dateBox = new JComboBox<>(DataStorage.getAvailableDates());
+        dateBox = new JComboBox<>();
         dateBox.setBounds(200, 150, 180, 25);
         add(dateBox);
 
@@ -80,15 +79,29 @@ public class ChooseBookGUI extends JFrame{
             }
         });
 
+        bookBox.addActionListener(e -> updateAvailableDates());
+
         reserveBtn.addActionListener(e -> {
             String topic = (String) topicBox.getSelectedItem();
             String book = (String) bookBox.getSelectedItem();
             String date = (String) dateBox.getSelectedItem();
+
+            if (topic == null || book == null || date == null) {
+                JOptionPane.showMessageDialog(this, "Please select a topic, book, and date before reserving.");
+                return;
+            }
+
             String cmd = "RESERVEBOOK|" + username + "|" + library + "|" + topic + "|" + book + "|" + date;
             out.println(cmd);
+
             try {
                 String reply = in.readLine();
                 JOptionPane.showMessageDialog(this, reply);
+
+                if (reply.startsWith("OK:")) {
+                    dateBox.removeItem(date);
+                }
+
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Error communicating with server.");
             }
@@ -96,5 +109,19 @@ public class ChooseBookGUI extends JFrame{
 
         setVisible(true);
     }
-    
+
+    private void updateAvailableDates() {
+        dateBox.removeAllItems();
+        String topic = (String) topicBox.getSelectedItem();
+        String book = (String) bookBox.getSelectedItem();
+
+        if (topic == null || book == null) return;
+
+        for (String date : DataStorage.getAvailableDates()) {
+
+            if (!DataStorage.isAlreadyReserved(library, topic, book, date)) {
+                dateBox.addItem(date);
+            }
+        }
+    }
 }
