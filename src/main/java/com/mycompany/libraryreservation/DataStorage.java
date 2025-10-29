@@ -49,9 +49,18 @@ public class DataStorage {
                 String[] p = line.split("\\|");
                 // username|library|topic|book|date
                 if (p.length == 5) {
-                    if (p[1].equals(library) && p[2].equals(topic) &&
-                        p[3].equals(book) && p[4].equals(date)) {
-                        return true;
+                    if (p.length == 5) {
+                        String fileLibrary = p[1].trim();
+                        String fileTopic   = p[2].trim();
+                        String fileBook    = p[3].trim();
+                        String fileDate    = p[4].trim();
+
+                        if (fileLibrary.equals(library.trim()) &&
+                            fileTopic.equals(topic.trim()) &&
+                            fileBook.equals(book.trim()) &&
+                            fileDate.equals(date.trim())) {
+                            return true;
+                        }
                     }
                 }
             }
