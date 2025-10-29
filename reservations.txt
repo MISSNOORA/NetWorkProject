@@ -8,3 +8,12 @@ nnn|City Library|Technology|AI Revolution|2025-10-18
 nnn|City Library|Technology|AI Revolution|2025-10-19
 nnn|City Library|Technology|AI Revolution|2025-10-20
 nnn|City Library|Technology|AI Revolution|null
+haja|City Library|Art|Painting 101|2025-10-16
+nor|City Library|Technology|Cybersecurity Essentials|2025-10-17
+fghjk|City Library|Technology|Cybersecurity Essentials|2025-10-16
+fghjk|City Library|Technology|Cybersecurity Essentials|2025-10-18
+nooooora|Adventure Library|Romance|The Notebook|2025-10-18
+norahhh|Central Library|Mathematics|Algebra Basics|2025-10-16
+norahhh|Central Library|Mathematics|Calculus I|2025-10-16
+nnnnooooooo|City Library|Art|Modern Art|2025-10-21
+nnnnnn11111|City Library|Art|Modern Art|2025-10-20

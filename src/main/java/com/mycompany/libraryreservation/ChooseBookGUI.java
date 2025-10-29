@@ -1,127 +1,168 @@
 package com.mycompany.libraryreservation;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
 
+public class ChooseBookGUI extends JFrame {
+    private JComboBox<String> topicBox;
+    private JComboBox<String> bookBox;
+    private JComboBox<String> comboDates;
+    private JButton reserveButton;
+    private String selectedLibrary;
+    private String username;
 
-public class ChooseBookGUI extends JFrame{
-    private JComboBox<String> topicBox, bookBox, dateBox;
-    private JButton reserveBtn;
-    private PrintWriter out;
-    private BufferedReader in;
-    private Socket socket;
-    private String username, library;
-
-    public ChooseBookGUI(String username, String library) {
+    // Constructor
+    public ChooseBookGUI(String username, String selectedLibrary) {
         this.username = username;
-        this.library = library;
+        this.selectedLibrary = selectedLibrary;
 
-        setTitle("Choose Topic & Book");
-        setSize(450, 350);
-        setLayout(null);
+        setTitle("Choose Book - " + selectedLibrary);
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new GridLayout(5, 2, 10, 10));
         setLocationRelativeTo(null);
 
-        JLabel lblTopic = new JLabel("Choose a topic:");
-        lblTopic.setBounds(50, 50, 200, 25);
-        add(lblTopic);
-
+        // Components
+        add(new JLabel("Choose a topic:"));
         topicBox = new JComboBox<>();
-        topicBox.setBounds(200, 50, 180, 25);
         add(topicBox);
 
-        JLabel lblBook = new JLabel("Choose a book:");
-        lblBook.setBounds(50, 100, 200, 25);
-        add(lblBook);
-
+        add(new JLabel("Choose a book:"));
         bookBox = new JComboBox<>();
-        bookBox.setBounds(200, 100, 180, 25);
         add(bookBox);
 
-        JLabel lblDate = new JLabel("Choose date:");
-        lblDate.setBounds(50, 150, 200, 25);
-        add(lblDate);
+        add(new JLabel("Choose available date:"));
+        comboDates = new JComboBox<>();
+        add(comboDates);
 
-        dateBox = new JComboBox<>();
-        dateBox.setBounds(200, 150, 180, 25);
-        add(dateBox);
+        reserveButton = new JButton("Reserve Book");
+        add(new JLabel()); // Empty cell
+        add(reserveButton);
 
-        reserveBtn = new JButton("Reserve Book");
-        reserveBtn.setBounds(150, 220, 150, 40);
-        add(reserveBtn);
+        // Load topics on start
+        loadTopics();
 
-        try {
-            socket = new Socket("localhost", 9090);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        // When a topic is selected → load books
+        topicBox.addActionListener(e -> loadBooks());
 
-            out.println("GETTOPICS|" + library);
-            String reply = in.readLine();
-            for (String t : reply.split("\\|")) topicBox.addItem(t);
+        // When a book is selected → load available dates
+        bookBox.addActionListener(e -> loadAvailableDates());
 
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Connection error.");
-        }
-
-        topicBox.addActionListener(e -> {
-            String topic = (String) topicBox.getSelectedItem();
-            if (topic != null) {
-                out.println("GETBOOKS|" + library + "|" + topic);
-                try {
-                    bookBox.removeAllItems();
-                    String reply = in.readLine();
-                    for (String b : reply.split("\\|")) bookBox.addItem(b);
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(this, "Error loading books.");
-                }
-            }
-        });
-
-        bookBox.addActionListener(e -> updateAvailableDates());
-
-        reserveBtn.addActionListener(e -> {
-            String topic = (String) topicBox.getSelectedItem();
-            String book = (String) bookBox.getSelectedItem();
-            String date = (String) dateBox.getSelectedItem();
-
-            if (topic == null || book == null || date == null) {
-                JOptionPane.showMessageDialog(this, "Please select a topic, book, and date before reserving.");
-                return;
-            }
-
-            String cmd = "RESERVEBOOK|" + username + "|" + library + "|" + topic + "|" + book + "|" + date;
-            out.println(cmd);
-
-            try {
-                String reply = in.readLine();
-                JOptionPane.showMessageDialog(this, reply);
-
-                if (reply.startsWith("OK:")) {
-                    dateBox.removeItem(date);
-                }
-
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error communicating with server.");
-            }
-        });
+        // When reserve button is clicked
+        reserveButton.addActionListener(e -> reserveBook());
 
         setVisible(true);
     }
 
-    private void updateAvailableDates() {
-        dateBox.removeAllItems();
-        String topic = (String) topicBox.getSelectedItem();
-        String book = (String) bookBox.getSelectedItem();
+    // ---------- Load Topics ----------
+    private void loadTopics() {
+        try (Socket socket = new Socket("localhost", 9090);
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-        if (topic == null || book == null) return;
+            out.println("GETTOPICS|" + selectedLibrary);
+            String reply = in.readLine();
 
-        for (String date : DataStorage.getAvailableDates()) {
-
-            if (!DataStorage.isAlreadyReserved(library, topic, book, date)) {
-                dateBox.addItem(date);
+            if (reply != null) {
+                topicBox.removeAllItems();
+                for (String t : reply.split("\\|")) {
+                    topicBox.addItem(t.trim());
+                }
             }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error loading topics: " + e.getMessage());
         }
     }
+
+    // ---------- Load Books ----------
+    private void loadBooks() {
+        String selectedTopic = (String) topicBox.getSelectedItem();
+        if (selectedTopic == null) return;
+
+        try (Socket socket = new Socket("localhost", 9090);
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+            out.println("GETBOOKS|" + selectedLibrary + "|" + selectedTopic);
+            String reply = in.readLine();
+
+            if (reply != null) {
+                bookBox.removeAllItems();
+                for (String b : reply.split("\\|")) {
+                    bookBox.addItem(b.trim());
+                }
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error loading books: " + e.getMessage());
+        }
+    }
+
+    // ---------- Load Available Dates ----------
+    private void loadAvailableDates() {
+        String selectedTopic = (String) topicBox.getSelectedItem();
+        String selectedBook = (String) bookBox.getSelectedItem();
+        if (selectedTopic == null || selectedBook == null) return;
+
+        try (Socket socket = new Socket("localhost", 9090);
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+            out.println("GETDATES|" + selectedLibrary + "|" + selectedTopic + "|" + selectedBook);
+            String reply_ = in.readLine();
+
+            comboDates.removeAllItems(); // clear old ones
+
+            if (reply_ != null && !reply_.isEmpty()) {
+                String[] dates = reply_.split("\\|");
+                for (String d : dates) {
+                    comboDates.addItem(d.trim());
+                }
+            } else {
+                comboDates.addItem("No dates available");
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error loading dates: " + e.getMessage());
+        }
+    }
+
+    // ---------- Reserve Book ----------
+    private void reserveBook() {
+        String selectedTopic = (String) topicBox.getSelectedItem();
+        String selectedBook = (String) bookBox.getSelectedItem();
+        String selectedDate = (String) comboDates.getSelectedItem();
+
+        if (selectedTopic == null || selectedBook == null || selectedDate == null) {
+            JOptionPane.showMessageDialog(this, "Please select a topic, book, and date.");
+            return;
+        }
+
+        try (Socket socket = new Socket("localhost", 9090);
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+            out.println("RESERVEBOOK|" + username + "|" + selectedLibrary + "|" + selectedTopic + "|" + selectedBook + "|" + selectedDate);
+            String reply = in.readLine();
+
+            if (reply != null && reply.contains("SUCCESS")) {
+                JOptionPane.showMessageDialog(this, "Book reserved successfully!");
+                loadAvailableDates(); // refresh available dates for others
+            } else if (reply != null && reply.contains("ALREADY")) {
+                JOptionPane.showMessageDialog(this, "This date is already reserved. Please choose another.");
+                loadAvailableDates(); // refresh available dates again
+            } else {
+                JOptionPane.showMessageDialog(this, "Reservation failed. Server said: " + reply);
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error connecting to server: " + e.getMessage());
+        }
+    }
+
+    
 }

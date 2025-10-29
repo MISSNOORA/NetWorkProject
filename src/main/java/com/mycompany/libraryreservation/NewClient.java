@@ -85,6 +85,21 @@ private static final Map<String, Map<String, List<String>>> LIB_DATA = DataStora
             out.println(String.join("|", books));
             return;
         }
+        
+        if (msg.startsWith("GETDATES|")) {
+            String[] p = msg.split("\\|");
+            if (p.length >= 4) {
+                String library = p[1];
+                String topic = p[2];
+                String book = p[3];
+                List<String> available = DataStorage.getAvailableDates(library, topic, book);
+                out.println(String.join("|", available));
+            } else {
+                out.println("FAIL|Invalid GETDATES format");
+            }
+            return;
+        }
+
 
         if (msg.startsWith("RESERVEBOOK|")) {
             if (parts.length < 6) { out.println("RESERVEBOOK|FAIL|format"); return; }

@@ -37,6 +37,43 @@ public class DataStorage {
             System.out.println("Error writing to users.txt");
         }
     }
+    
+        // ---------- GET AVAILABLE DATES ----------
+    public static List<String> getAvailableDates(String library, String topic, String book) {
+        // Step 1: all possible dates
+        List<String> allDates = new ArrayList<>(Arrays.asList(
+            "2025-10-17", "2025-10-18", "2025-10-19", "2025-10-20", "2025-10-21"
+        ));
+
+        File f = new File("reservations.txt");
+        if (!f.exists()) return allDates;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] p = line.split("\\|");
+                if (p.length == 5) {
+                    String fileLibrary = p[1].trim();
+                    String fileTopic   = p[2].trim();
+                    String fileBook    = p[3].trim();
+                    String fileDate    = p[4].trim();
+
+                    // Step 2: if same library/topic/book -> remove date
+                    if (fileLibrary.equalsIgnoreCase(library)
+                        && fileTopic.equalsIgnoreCase(topic)
+                        && fileBook.equalsIgnoreCase(book)) {
+                        allDates.remove(fileDate);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading reservations: " + e.getMessage());
+        }
+
+        // Step 3: remaining dates are available
+        return allDates;
+    }
+
 
     // ---------- RESERVATIONS ----------
     public static boolean isAlreadyReserved(String library, String topic, String book, String date) {
