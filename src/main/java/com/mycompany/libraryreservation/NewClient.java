@@ -45,18 +45,26 @@ private static final Map<String, Map<String, List<String>>> LIB_DATA = DataStora
     private void handleMessage(String msg) {
         System.out.println("Received: " + msg);
         String[] parts = msg.split("\\|");
-        if (msg.startsWith("REGISTER|")) {
+       if (msg.startsWith("REGISTER|")) {
             if (parts.length < 3) {
                 out.println("REGISTER|FAIL|Wrong format");
                 return;
             }
+
             String name = parts[1];
             String password = parts[2];
 
-            // Save user info to file
-            DataStorage.saveUser(name, password);
-            out.println("Registeration was successfully");
+            if (DataStorage.usernameExists(name)) {
+                out.println("REGISTER|FAIL|Username taken");
+                System.out.println("Username already exists: " + name);
+            } else {
+                DataStorage.saveUser(name, password);
+                out.println("REGISTER|OK");
+                System.out.println("User registered successfully: " + name);
+            }
+            return;
         }
+
        if (msg.equals("GETLIBRARIES")) {
             out.println(String.join("|", LIB_DATA.keySet()));
             return;

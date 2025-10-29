@@ -73,13 +73,16 @@ public class RegistrationGUI extends JFrame {
             System.out.println("Server reply: " + reply);
 
             // success
-            if (reply != null && reply.contains("successfully")) {
+           if (reply != null && reply.contains("REGISTER|OK")) {
                 JOptionPane.showMessageDialog(this, "Registered successfully!");
-                new ChooseLibraryGUI(name); 
-                dispose(); 
+                new ChooseLibraryGUI(name);
+                dispose();
+            } else if (reply != null && reply.contains("Username taken")) {
+                JOptionPane.showMessageDialog(this, "This username is already taken. Please choose another one.");
             } else {
                 JOptionPane.showMessageDialog(this, "Registration failed.\nServer said: " + reply);
             }
+
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Cannot connect to the server. Make sure it's running.");
