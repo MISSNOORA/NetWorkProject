@@ -13,8 +13,11 @@ public class ChooseBookGUI extends JFrame {
     private JButton reserveButton;
     private String selectedLibrary;
     private String username;
-
-    // Constructor
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader in;
+    
+    
     public ChooseBookGUI(String username, String selectedLibrary) {
         this.username = username;
         this.selectedLibrary = selectedLibrary;
@@ -24,8 +27,16 @@ public class ChooseBookGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridLayout(5, 2, 10, 10));
         setLocationRelativeTo(null);
+        
+        try{
+            socket =new Socket("localhost",9090);
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("Connected to server");
+        } catch(IOException e){
+            JOptionPane.showMessageDialog(this,"Error conneting to server:" + e.getMessage());
+        }
 
-        // Components
         add(new JLabel("Choose a topic:"));
         topicBox = new JComboBox<>();
         add(topicBox);
@@ -39,30 +50,19 @@ public class ChooseBookGUI extends JFrame {
         add(comboDates);
 
         reserveButton = new JButton("Reserve Book");
-        add(new JLabel()); // Empty cell
+        add(new JLabel());
         add(reserveButton);
 
-        // Load topics on start
-        loadTopics();
-
-        // When a topic is selected → load books
-        topicBox.addActionListener(e -> loadBooks());
-
-        // When a book is selected → load available dates
-        bookBox.addActionListener(e -> loadAvailableDates());
-
-        // When reserve button is clicked
+        loadTopics();                                           // first we get the topics
+        topicBox.addActionListener(e -> loadBooks());           // then get the books of this topic
+        bookBox.addActionListener(e -> loadAvailableDates());   // then get the available dates of this book
         reserveButton.addActionListener(e -> reserveBook());
 
         setVisible(true);
     }
 
-    // ---------- Load Topics ----------
     private void loadTopics() {
-        try (Socket socket = new Socket("localhost", 9090);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
+        try {
             out.println("GETTOPICS|" + selectedLibrary);
             String reply = in.readLine();
 
@@ -78,15 +78,11 @@ public class ChooseBookGUI extends JFrame {
         }
     }
 
-    // ---------- Load Books ----------
     private void loadBooks() {
         String selectedTopic = (String) topicBox.getSelectedItem();
         if (selectedTopic == null) return;
 
-        try (Socket socket = new Socket("localhost", 9090);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
+        try{
             out.println("GETBOOKS|" + selectedLibrary + "|" + selectedTopic);
             String reply = in.readLine();
 
@@ -102,16 +98,13 @@ public class ChooseBookGUI extends JFrame {
         }
     }
 
-    // ---------- Load Available Dates ----------
+
     private void loadAvailableDates() {
         String selectedTopic = (String) topicBox.getSelectedItem();
         String selectedBook = (String) bookBox.getSelectedItem();
         if (selectedTopic == null || selectedBook == null) return;
 
-        try (Socket socket = new Socket("localhost", 9090);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
+        try {
             out.println("GETDATES|" + selectedLibrary + "|" + selectedTopic + "|" + selectedBook);
             String reply_ = in.readLine();
 
@@ -131,7 +124,6 @@ public class ChooseBookGUI extends JFrame {
         }
     }
 
-    // ---------- Reserve Book ----------
     private void reserveBook() {
         String selectedTopic = (String) topicBox.getSelectedItem();
         String selectedBook = (String) bookBox.getSelectedItem();
@@ -142,17 +134,17 @@ public class ChooseBookGUI extends JFrame {
             return;
         }
 
-        try (Socket socket = new Socket("localhost", 9090);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
+        try{
             out.println("RESERVEBOOK|" + username + "|" + selectedLibrary + "|" + selectedTopic + "|" + selectedBook + "|" + selectedDate);
             String reply = in.readLine();
 
-            if (reply != null && reply.contains("SUCCESS")) {
+            if (reply != null && (reply.contains("SUCCESS") || reply.contains("RESERVEBOOK|OK"))) {// if server replayed that reservation was succseesful then tell the user that
                 JOptionPane.showMessageDialog(this, "Book reserved successfully!");
-                loadAvailableDates(); // refresh available dates for others
-            } else if (reply != null && reply.contains("ALREADY")) {
+                loadAvailableDates(); 
+                dispose();
+                new ChooseLibraryGUI(username); // going bacj to the library gui
+                
+            } else if (reply != null && reply.contains("ALREADY")) { // incase method
                 JOptionPane.showMessageDialog(this, "This date is already reserved. Please choose another.");
                 loadAvailableDates(); // refresh available dates again
             } else {

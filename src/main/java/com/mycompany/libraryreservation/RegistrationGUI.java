@@ -40,18 +40,16 @@ public class RegistrationGUI extends JFrame {
 
         JButton btnRegister = new JButton("Register");
         btnRegister.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnRegister.setBounds(140, 160, 120, 35);
-        btnRegister.setBackground(new Color(200, 230, 255));
-        btnRegister.setFocusPainted(false);
+        btnRegister.setBounds(150, 130, 100, 35);
         add(btnRegister);
 
-        // 💡 this line makes the button open ChooseLibraryGUI after registration
+        // clicking register will call method try register
         btnRegister.addActionListener(e -> tryRegister());
 
         setVisible(true);
     }
 
-    // ---------------- REGISTER LOGIC ----------------
+
     private void tryRegister() {
         String name = txtName.getText().trim();
         String pass = new String(txtPassword.getPassword()).trim();
@@ -77,7 +75,7 @@ public class RegistrationGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Registered successfully!");
                 new ChooseLibraryGUI(name);
                 dispose();
-            } else if (reply != null && reply.contains("Username taken")) {
+            } else if (reply != null && reply.contains("Username taken")) {// if the replay from user contains this message tell the client
                 JOptionPane.showMessageDialog(this, "This username is already taken. Please choose another one.");
             } else {
                 JOptionPane.showMessageDialog(this, "Registration failed.\nServer said: " + reply);
@@ -85,7 +83,7 @@ public class RegistrationGUI extends JFrame {
 
 
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Cannot connect to the server. Make sure it's running.");
+            JOptionPane.showMessageDialog(this, "Cannot connect to the server.");
         }
     }
 
