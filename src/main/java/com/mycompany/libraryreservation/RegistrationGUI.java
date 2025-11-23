@@ -2,95 +2,89 @@ package com.mycompany.libraryreservation;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
 
 public class RegistrationGUI extends JFrame {
 
     private JTextField txtName;
     private JPasswordField txtPassword;
-    private PrintWriter out;
-    private BufferedReader in;
-    private Socket socket;
 
     public RegistrationGUI() {
-
         setTitle("Library Registration");
-        setSize(400, 250);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 230);
         setLayout(null);
-        setResizable(false);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-
-        JLabel lblTitle = new JLabel("Register New User");
+        JLabel lblTitle = new JLabel("Register New User", SwingConstants.CENTER);
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTitle.setBounds(80, 15, 240, 30);
+        lblTitle.setBounds(70, 15, 260, 30);
         add(lblTitle);
 
-        JLabel lblName = new JLabel("Username:");
-        lblName.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        lblName.setBounds(50, 70, 100, 25);
-        add(lblName);
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setBounds(50, 70, 100, 25);
+        add(lblUsername);
 
         txtName = new JTextField();
-        txtName.setBounds(150, 70, 180, 25);
+        txtName.setBounds(150, 70, 190, 25);
         add(txtName);
 
-
         JLabel lblPassword = new JLabel("Password:");
-        lblPassword.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        lblPassword.setBounds(50, 110, 100, 25);
+        lblPassword.setBounds(50, 105, 100, 25);
         add(lblPassword);
 
         txtPassword = new JPasswordField();
-        txtPassword.setBounds(150, 110, 180, 25);
+        txtPassword.setBounds(150, 105, 190, 25);
         add(txtPassword);
-
 
         JButton btnRegister = new JButton("Register");
         btnRegister.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnRegister.setBounds(140, 160, 120, 35);
-        btnRegister.setBackground(new Color(200, 230, 255));
-        btnRegister.setFocusPainted(false);
+        btnRegister.setBounds(150, 130, 100, 35);
         add(btnRegister);
-        
 
-        try {
-            socket = new Socket("localhost", 9090);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            JOptionPane.showMessageDialog(this, "Connected to server");
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Failed to connect to server.", "Connection Error", JOptionPane.ERROR_MESSAGE);
-        }
-
-        btnRegister.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String name = txtName.getText().trim();
-                String password = new String(txtPassword.getPassword()).trim();
-
-                if (name.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(RegistrationGUI.this, "Please enter both username and password.", "Missing Info", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                String command = "REGISTER|" + name + "|" + password;
-                out.println(command);
-
-                try {
-                    String reply = in.readLine();
-                    JOptionPane.showMessageDialog(RegistrationGUI.this, reply);
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(RegistrationGUI.this, "Error reading server response.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
+        // clicking register will call method try register
+        btnRegister.addActionListener(e -> tryRegister());
 
         setVisible(true);
+    }
+
+
+    private void tryRegister() {
+        String name = txtName.getText().trim();
+        String pass = new String(txtPassword.getPassword()).trim();
+
+        if (name.isEmpty() || pass.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in both fields.");
+            return;
+        }
+
+        try (Socket socket = new Socket("localhost", 9090);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
+
+            // send register command
+            out.println("REGISTER|" + name + "|" + pass);
+
+            // wait for reply
+            String reply = in.readLine();
+            System.out.println("Server reply: " + reply);
+
+            // success
+           if (reply != null && reply.contains("REGISTER|OK")) {
+                JOptionPane.showMessageDialog(this, "Registered successfully!");
+                new ChooseLibraryGUI(name);
+                dispose();
+            } else if (reply != null && reply.contains("Username taken")) {// if the replay from user contains this message tell the client
+                JOptionPane.showMessageDialog(this, "This username is already taken. Please choose another one.");
+            } else {
+                JOptionPane.showMessageDialog(this, "Registration failed.\nServer said: " + reply);
+            }
+
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Cannot connect to the server.");
+        }
     }
 
     public static void main(String[] args) {

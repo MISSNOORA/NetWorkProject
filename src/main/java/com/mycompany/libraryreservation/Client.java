@@ -40,6 +40,7 @@ public class Client {
           }
             System.out.println("Client closed.");
              System.exit(0);}}
+
 /// ghena here 
 //Alya
 //norah

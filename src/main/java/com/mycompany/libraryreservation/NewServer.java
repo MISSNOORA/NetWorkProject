@@ -7,12 +7,12 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
-public class NewServer
+public class NewServer //the class that starts the server
 {
     private static ArrayList<NewClient> clients=new ArrayList<>(); // list for all clients connected 
     
     public static void main(String[] args) throws IOException
-    {
+    {// opens a port and waits for client connection
         ServerSocket serverSocket = new ServerSocket(9090);
 
         while (true){// keep accepting clients

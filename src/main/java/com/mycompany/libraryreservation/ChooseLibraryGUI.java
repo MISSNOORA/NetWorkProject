@@ -45,7 +45,7 @@ public class ChooseLibraryGUI extends JFrame {
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            out.println("GETLIBRARIES");
+            out.println("GETLIBRARIES");// sends command so the server can display the list of librarys
             String reply = in.readLine();
             for (String lib : reply.split("\\|")) libraryBox.addItem(lib);
 
@@ -53,7 +53,7 @@ public class ChooseLibraryGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Cannot connect to server.");
         }
 
-        nextBtn.addActionListener(e -> {
+        nextBtn.addActionListener(e -> { // clicking next will take the chosen library and sends it to the book gui to displays its topics,books and dates
             String selectedLibrary = (String) libraryBox.getSelectedItem();
             if (selectedLibrary != null) {
                 new ChooseBookGUI(username, selectedLibrary);

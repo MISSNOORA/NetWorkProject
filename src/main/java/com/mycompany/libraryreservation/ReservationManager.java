@@ -49,10 +49,10 @@ public class ReservationManager {
         List<String> books = topics.get(topic);
         if (books == null) return s;
 
-       
+
         if (books.contains(s)) return s;
 
-        
+
         for (String entry : books) {
             int dash = entry.indexOf(" - ");
             if (dash > 0) {
@@ -60,7 +60,7 @@ public class ReservationManager {
                 if (s.equals(id)) return entry; 
             }
         }
-        
+
         return s;
     }
 
@@ -88,7 +88,7 @@ public class ReservationManager {
 
         List<String> available = new ArrayList<>();
         for (String displayTitle : books) {
-            
+
             if (!DataStorage.isAlreadyReserved(library, topic, displayTitle, dateOrNull)) {
                 available.add(displayTitle);
             }
@@ -108,7 +108,7 @@ public class ReservationManager {
     }
 
     public synchronized Result reserve(String user, String library, String topic, String bookInput, String date) {
-        
+
         String displayTitle = toDisplayBook(library, topic, bookInput);
 
         if (isBlank(user, library, topic, displayTitle, date))
@@ -122,6 +122,7 @@ public class ReservationManager {
         }
 
         try {
+
             DataStorage.saveReservation(user, library, topic, displayTitle, date);
         } catch (Exception e) {
             return Result.fail("File error while saving.");
@@ -131,8 +132,10 @@ public class ReservationManager {
         return Result.ok("Reserved " + displayTitle + " on " + date + ".");
     }
 
+    
+
     public synchronized Result cancel(String user, String library, String topic, String bookInput, String date) {
-        
+
         String displayTitle = toDisplayBook(library, topic, bookInput);
 
         File f = new File("reservations.txt");

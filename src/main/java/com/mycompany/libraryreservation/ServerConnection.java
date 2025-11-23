@@ -39,7 +39,7 @@ public class ServerConnection implements Runnable{
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-            }     
+            }     // handels everything thatt happens between the client and server, it reads messages and replais to the client.
     }           
 }
 
