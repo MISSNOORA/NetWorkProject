@@ -49,9 +49,7 @@ public class ReservationManager {
         List<String> books = topics.get(topic);
         if (books == null) return s;
 
-
         if (books.contains(s)) return s;
-
 
         for (String entry : books) {
             int dash = entry.indexOf(" - ");
@@ -60,7 +58,6 @@ public class ReservationManager {
                 if (s.equals(id)) return entry; 
             }
         }
-
         return s;
     }
 
@@ -73,7 +70,6 @@ public class ReservationManager {
         List<String> books = topics.get(topic);
         return books != null && books.contains(display);
     }
-
 
     public List<String> getAvailableBooks(String library, String topic, String dateOrNull) {
         Map<String, List<String>> topics = libData.get(library);
@@ -88,7 +84,6 @@ public class ReservationManager {
 
         List<String> available = new ArrayList<>();
         for (String displayTitle : books) {
-
             if (!DataStorage.isAlreadyReserved(library, topic, displayTitle, dateOrNull)) {
                 available.add(displayTitle);
             }
@@ -108,7 +103,6 @@ public class ReservationManager {
     }
 
     public synchronized Result reserve(String user, String library, String topic, String bookInput, String date) {
-
         String displayTitle = toDisplayBook(library, topic, bookInput);
 
         if (isBlank(user, library, topic, displayTitle, date))
@@ -122,20 +116,25 @@ public class ReservationManager {
         }
 
         try {
-
+            // 1️⃣ حفظ الحجز في الملف
             DataStorage.saveReservation(user, library, topic, displayTitle, date);
+
+            // 2️⃣ حذف الكتاب من قائمة المتاحين بعد الحجز مباشرة
+            Map<String, List<String>> topics = libData.get(library);
+            if (topics != null) {
+                List<String> books = topics.get(topic);
+                if (books != null) {
+                    books.remove(displayTitle);
+                }
+            }
+
+            return Result.ok("Reserved " + displayTitle + " on " + date + ".");
         } catch (Exception e) {
             return Result.fail("File error while saving.");
         }
-
-        notifyAllClients("UPDATE|RESERVED|" + library + "|" + topic + "|" + displayTitle + "|" + date + "|by|" + user);
-        return Result.ok("Reserved " + displayTitle + " on " + date + ".");
     }
 
-    
-
     public synchronized Result cancel(String user, String library, String topic, String bookInput, String date) {
-
         String displayTitle = toDisplayBook(library, topic, bookInput);
 
         File f = new File("reservations.txt");
@@ -169,9 +168,9 @@ public class ReservationManager {
         return Result.ok("Cancelled reservation for " + displayTitle + " on " + date + ".");
     }
 
-
     private static boolean isBlank(String... s) {
         for (String x : s) if (x == null || x.isBlank()) return true;
         return false;
     }
 }
+
