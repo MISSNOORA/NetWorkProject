@@ -124,6 +124,20 @@ private static final Map<String, Map<String, List<String>>> LIB_DATA = DataStora
         }
 
     
+if (msg.startsWith("LOGIN|")) {
+    if (parts.length < 3) { out.println("LOGIN|FAIL|Wrong format"); return; }
+    String name = parts[1];
+    String password = parts[2];
+
+    if (DataStorage.validateCredentials(name, password)) {
+        out.println("LOGIN|OK");
+        System.out.println("User logged in: " + name);
+    } else {
+        out.println("LOGIN|FAIL|Invalid credentials");
+        System.out.println("Failed login attempt: " + name);
+    }
+    return;
+}
 
     //private void outToAll(String msg) {
         //for (NewClient c : clients) {
