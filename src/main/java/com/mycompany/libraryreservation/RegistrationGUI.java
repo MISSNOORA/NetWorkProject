@@ -12,7 +12,7 @@ public class RegistrationGUI extends JFrame {
 
     public RegistrationGUI() {
         setTitle("Library Registration");
-        setSize(400, 230);
+        setSize(400, 300); // زدنا الارتفاع لأن عندنا 3 عناصر (Register - or - Login)
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -38,17 +38,35 @@ public class RegistrationGUI extends JFrame {
         txtPassword.setBounds(150, 105, 190, 25);
         add(txtPassword);
 
+        // زر Register
         JButton btnRegister = new JButton("Register");
         btnRegister.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnRegister.setBounds(150, 130, 100, 35);
+        btnRegister.setBounds(145, 140, 110, 35);
         add(btnRegister);
 
-        // clicking register will call method try register
+        // كلمة OR
+        JLabel lblOr = new JLabel("or", SwingConstants.CENTER);
+        lblOr.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        lblOr.setBounds(145, 180, 110, 20);
+        add(lblOr);
+
+        // زر Login بنفس حجم Register
+        JButton btnLogin = new JButton("Login");
+        btnLogin.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnLogin.setBounds(145, 205, 110, 35);
+        add(btnLogin);
+
+        // Register Action
         btnRegister.addActionListener(e -> tryRegister());
+
+        // Login Action
+        btnLogin.addActionListener(e -> {
+            new LoginGUI();
+            dispose();
+        });
 
         setVisible(true);
     }
-
 
     private void tryRegister() {
         String name = txtName.getText().trim();
@@ -63,24 +81,20 @@ public class RegistrationGUI extends JFrame {
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
 
-            // send register command
             out.println("REGISTER|" + name + "|" + pass);
 
-            // wait for reply
             String reply = in.readLine();
             System.out.println("Server reply: " + reply);
 
-            // success
-           if (reply != null && reply.contains("REGISTER|OK")) {
+            if (reply != null && reply.contains("REGISTER|OK")) {
                 JOptionPane.showMessageDialog(this, "Registered successfully!");
                 new ChooseLibraryGUI(name);
                 dispose();
-            } else if (reply != null && reply.contains("Username taken")) {// if the replay from user contains this message tell the client
+            } else if (reply != null && reply.contains("Username taken")) {
                 JOptionPane.showMessageDialog(this, "This username is already taken. Please choose another one.");
             } else {
                 JOptionPane.showMessageDialog(this, "Registration failed.\nServer said: " + reply);
             }
-
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Cannot connect to the server.");

@@ -149,5 +149,26 @@ public class DataStorage {
 
         return libraries;
     }
+    public static boolean validateCredentials(String username, String password) {
+    File f = new File("users.txt");
+    if (!f.exists()) return false;
+    try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] parts = line.split("\\|");
+            if (parts.length >= 2) {
+                String fileUser = parts[0].trim();
+                String filePass = parts[1].trim();
+                if (fileUser.equals(username) && filePass.equals(password)) {
+                    return true;
+                }
+            }
+        }
+    } catch (IOException e) {
+        System.out.println("Error validating credentials: " + e.getMessage());
+    }
+    return false;
+}
+
 }
 
