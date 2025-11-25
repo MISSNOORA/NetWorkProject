@@ -6,3 +6,15 @@ noooooora|Adventure Library|Romance|Twilight|2025-10-18
 nora12|City Library|Business|Marketing Basics|2025-10-18
 kkkkk|City Library|Technology|Cybersecurity Essentials|2025-10-18
 kkkkk555|Central Library|Mathematics|Algebra Basics|2025-10-13
+noora_alsaiari|City Library|Business|Accounting Principles|2025-10-17
+nnnn1|Central Library|Computer Science|Data Structures in Java|2025-10-13
+noooooooora|Central Library|Computer Science|Data Structures in Java|2025-10-15
+nnnn1|Central Library|Computer Science|Data Structures in Java|2025-10-14
+norah|City Library|Technology|AI Revolution|2025-10-13
+norahh|Central Library|Mathematics|Calculus I|2025-10-14
+noora|City Library|Business|Startup Strategies|2025-10-23
+noora|Central Library|Literature|Pride and Prejudice|2025-10-15
+noora|City Library|Business|Startup Strategies|2025-10-22
+noora|City Library|Technology|AI Revolution|2025-10-14
+noora|Adventure Library|Romance|Me Before You|2025-10-15
+noora|Adventure Library|Mystery|Gone Girl|2025-10-13

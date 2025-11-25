@@ -69,7 +69,7 @@ public class LoginGUI extends JFrame {
 
             if (reply != null && reply.startsWith("LOGIN|OK")) {
                 JOptionPane.showMessageDialog(this, "Login successful!");
-                new ChooseLibraryGUI(name);
+                new UserDashboardGUI(name).setVisible(true);
                 dispose();
             } else if (reply != null && reply.startsWith("LOGIN|FAIL")) {
                 String[] p = reply.split("\\|", 3);

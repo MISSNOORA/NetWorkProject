@@ -169,6 +169,36 @@ public class DataStorage {
     }
     return false;
 }
+    
+    
+    public List<Reservations> getReservationsForUser(String username) {
+    List<Reservations> list = new ArrayList<>();
+
+    try (BufferedReader br = new BufferedReader(new FileReader("reservations.txt"))) {
+        String line;
+
+        while ((line = br.readLine()) != null) {
+            String[] parts = line.split("\\|");
+
+            if (parts.length == 5) {
+                String user = parts[0];
+                String library = parts[1];
+                String topic = parts[2];
+                String book = parts[3];
+                String date = parts[4];
+
+                if (user.equals(username)) {
+                    list.add(new Reservations(user, library, topic, book, date));
+                }
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("Error reading reservations.txt: " + e.getMessage());
+    }
+
+    return list;
+}
+
 
 }
 

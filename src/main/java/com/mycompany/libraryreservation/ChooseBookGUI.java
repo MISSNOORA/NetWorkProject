@@ -142,7 +142,7 @@ public class ChooseBookGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Book reserved successfully!");
                 loadAvailableDates(); 
                 dispose();
-                new ChooseLibraryGUI(username); // going bacj to the library gui
+                new UserDashboardGUI(username); // going bacj to the library gui
                 
             } else if (reply != null && reply.contains("ALREADY")) { // incase method
                 JOptionPane.showMessageDialog(this, "This date is already reserved. Please choose another.");
