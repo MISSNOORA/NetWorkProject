@@ -198,6 +198,56 @@ public class DataStorage {
 
     return list;
 }
+    
+    
+    public String cancelReservation(String username, String library, String topic, String book, String date) {
+
+    List<String> lines = new ArrayList<>();
+    try (BufferedReader br = new BufferedReader(new FileReader("reservations.txt"))) {
+        String line;
+
+        while ((line = br.readLine()) != null) {
+            lines.add(line);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "CANCEL|ERROR";
+    }
+
+    boolean removed = false;
+
+    for (int i = 0; i < lines.size(); i++) {
+        String[] parts = lines.get(i).split("\\|");
+
+        if (parts.length == 5 &&
+            parts[0].equals(username) &&
+            parts[1].equals(library) &&
+            parts[2].equals(topic) &&
+            parts[3].equals(book) &&
+            parts[4].equals(date)) {
+
+            lines.remove(i);
+            removed = true;
+            break;
+        }
+    }
+    if (!removed) return "CANCEL|NOTFOUND";
+
+    try (PrintWriter pw = new PrintWriter(new FileWriter("reservations.txt"))) {
+
+        for (String line : lines) {
+            pw.println(line);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "CANCEL|ERROR";
+    }
+
+    return "CANCEL|SUCCESS";
+}
+
 
 
 }
