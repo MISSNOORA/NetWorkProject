@@ -19,7 +19,7 @@ private BufferedReader in;
 private PrintWriter out;
 private ArrayList<NewClient> clients; // list of client connected to the server
 private static final Map<String, Map<String, List<String>>> LIB_DATA = DataStorage.readLibraries(); // a method to read from a file to display info to the user
-
+private DataStorage storage = new DataStorage();
   public NewClient (Socket c,ArrayList<NewClient> clients) throws IOException
   {
     this.client = c;
@@ -137,14 +137,29 @@ private static final Map<String, Map<String, List<String>>> LIB_DATA = DataStora
     }
     return;
 }
-
     
+ if (msg.startsWith("CANCEL|")) {
 
+    String[] p = msg.split("\\|");
+    if (p.length < 6) {
+        out.println("CANCEL|ERROR|FORMAT");
+        return;
+    }
 
-    //private void outToAll(String msg) {
+    String username = p[1];
+    String library  = p[2];
+    String topic    = p[3];
+    String book     = p[4];
+    String date     = p[5];
+
+    // استدعاء ميثود داتا ستورج
+    String result = storage.cancelReservation(username, library, topic, book, date);
+
+    out.println(result);   // مثال: CANCEL|SUCCESS أو CANCEL|NOTFOUND أو CANCEL|ERROR
+    return;
+}
+ //private void outToAll(String msg) {
         //for (NewClient c : clients) {
            // c.out.println(msg);
         //}
-    }
-}
-
+    }}
