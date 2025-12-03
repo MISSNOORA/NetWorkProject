@@ -1,3 +1,4 @@
+
 package com.mycompany.libraryreservation;
 
 import javax.swing.*;
@@ -10,56 +11,90 @@ public class RegistrationGUI extends JFrame {
     private JTextField txtName;
     private JPasswordField txtPassword;
 
+    // Theme
+    private static final Color BG = Color.WHITE;
+    private static final Color PRIMARY = new Color(0, 70, 140);      // أزرق غامق
+    private static final Color PRIMARY_LIGHT = new Color(0, 90, 180); // أزرق أفتح
+    private static final Color TEXT = new Color(30, 30, 30);
+    private static final Font TITLE = new Font("SansSerif", Font.BOLD, 18);
+    private static final Font LABEL = new Font("SansSerif", Font.PLAIN, 14);
+    private static final Font BUTTON = new Font("SansSerif", Font.BOLD, 14);
+
     public RegistrationGUI() {
-        setTitle("Library Registration");
-        setSize(400, 300); // زدنا الارتفاع لأن عندنا 3 عناصر (Register - or - Login)
+        setTitle("Registration");
+        setSize(420, 330);
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JLabel lblTitle = new JLabel("Register New User", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lblTitle.setBounds(70, 15, 260, 30);
+        getContentPane().setBackground(BG);
+
+        // عنوان النظام
+        JLabel lblSystem = new JLabel("Library Booking System", SwingConstants.CENTER);
+        lblSystem.setFont(TITLE);
+        lblSystem.setForeground(PRIMARY);
+        lblSystem.setBounds(60, 20, 300, 25);
+        add(lblSystem);
+
+        // عنوان فرعي
+        JLabel lblTitle = new JLabel("Create a New Account", SwingConstants.CENTER);
+        lblTitle.setFont(LABEL);
+        lblTitle.setForeground(TEXT);
+        lblTitle.setBounds(90, 55, 240, 20);
         add(lblTitle);
 
+        // Username
         JLabel lblUsername = new JLabel("Username:");
-        lblUsername.setBounds(50, 70, 100, 25);
+        lblUsername.setFont(LABEL);
+        lblUsername.setBounds(60, 110, 100, 25);
         add(lblUsername);
 
         txtName = new JTextField();
-        txtName.setBounds(150, 70, 190, 25);
+        txtName.setBounds(160, 110, 200, 25);
+        txtName.setFont(LABEL);
         add(txtName);
 
+        // Password
         JLabel lblPassword = new JLabel("Password:");
-        lblPassword.setBounds(50, 105, 100, 25);
+        lblPassword.setFont(LABEL);
+        lblPassword.setBounds(60, 145, 100, 25);
         add(lblPassword);
 
         txtPassword = new JPasswordField();
-        txtPassword.setBounds(150, 105, 190, 25);
+        txtPassword.setBounds(160, 145, 200, 25);
+        txtPassword.setFont(LABEL);
         add(txtPassword);
 
         // زر Register
         JButton btnRegister = new JButton("Register");
-        btnRegister.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnRegister.setBounds(145, 140, 110, 35);
+        btnRegister.setFont(BUTTON);
+        btnRegister.setBackground(PRIMARY);
+        btnRegister.setForeground(Color.WHITE);
+        btnRegister.setFocusPainted(false);
+        btnRegister.setOpaque(true);
+        btnRegister.setBorder(BorderFactory.createLineBorder(PRIMARY));
+        btnRegister.setBounds(150, 185, 120, 32);
         add(btnRegister);
 
-        // كلمة OR
+        // OR
         JLabel lblOr = new JLabel("or", SwingConstants.CENTER);
-        lblOr.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        lblOr.setBounds(145, 180, 110, 20);
+        lblOr.setFont(LABEL);
+        lblOr.setBounds(150, 220, 120, 20);
         add(lblOr);
 
-        // زر Login بنفس حجم Register
+        // زر Login
         JButton btnLogin = new JButton("Login");
-        btnLogin.setFont(new Font("SansSerif", Font.BOLD, 14));
-        btnLogin.setBounds(145, 205, 110, 35);
+        btnLogin.setFont(BUTTON);
+        btnLogin.setBackground(PRIMARY);
+        btnLogin.setForeground(Color.WHITE);
+        btnLogin.setFocusPainted(false);
+        btnLogin.setOpaque(true);
+        btnLogin.setBorder(BorderFactory.createLineBorder(PRIMARY_LIGHT));
+        btnLogin.setBounds(150, 245, 120, 32);
         add(btnLogin);
 
-        // Register Action
+        // Actions
         btnRegister.addActionListener(e -> tryRegister());
-
-        // Login Action
         btnLogin.addActionListener(e -> {
             new LoginGUI();
             dispose();
@@ -79,7 +114,7 @@ public class RegistrationGUI extends JFrame {
 
         try (Socket socket = new Socket("localhost", 9090);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
             out.println("REGISTER|" + name + "|" + pass);
 
@@ -91,9 +126,9 @@ public class RegistrationGUI extends JFrame {
                 new ChooseLibraryGUI(name);
                 dispose();
             } else if (reply != null && reply.contains("Username taken")) {
-                JOptionPane.showMessageDialog(this, "This username is already taken. Please choose another one.");
+                JOptionPane.showMessageDialog(this, "This username is already taken.");
             } else {
-                JOptionPane.showMessageDialog(this, "Registration failed.\nServer said: " + reply);
+                JOptionPane.showMessageDialog(this, "Registration failed: " + reply);
             }
 
         } catch (IOException e) {

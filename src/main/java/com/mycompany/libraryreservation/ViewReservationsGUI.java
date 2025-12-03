@@ -2,118 +2,149 @@ package com.mycompany.libraryreservation;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.List;
+import java.util.ArrayList;
 
 public class ViewReservationsGUI extends JFrame {
 
     private String username;
     private DataStorage storage;
     private JPanel panel;
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader in;
+
+    private static final Color BG = Color.WHITE;
+    private static final Color PRIMARY = new Color(0, 70, 140);
+    private static final Font LABEL = new Font("SansSerif", Font.PLAIN, 14);
+    private static final Font BUTTON = new Font("SansSerif", Font.BOLD, 13);
 
     public ViewReservationsGUI(String username) {
         this.username = username;
 
         setTitle("My Reservations");
-        setSize(450, 350);
+        setSize(500, 380);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        storage = new DataStorage();
+        getContentPane().setBackground(BG);
+        setLayout(new BorderLayout(10, 10));
 
+        storage = new DataStorage();
+        try {
+            socket = new Socket("localhost", 9090);  // you asked to keep localhost
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(BG);
 
-        // load reservations into panel
+        JScrollPane scrollPane = new JScrollPane(panel);
+        add(scrollPane, BorderLayout.CENTER);
+
+ 
         loadReservations();
-
-        JScrollPane scroll = new JScrollPane(panel);
-
-        JButton back = new JButton("Back");
-        back.addActionListener(e -> {
-            new UserDashboardGUI(username).setVisible(true);
-            dispose();
-        });
-
-        add(scroll, BorderLayout.CENTER);
-        add(back, BorderLayout.SOUTH);
     }
 
+
     private void loadReservations() {
-        // clear current cards (useful when reloading after cancel)
         panel.removeAll();
 
-        List<Reservations> reservations = storage.getReservationsForUser(username);
+        List<Reservations> reservations = new ArrayList<>();
 
-        if (reservations == null || reservations.isEmpty()) {
-            panel.add(new JLabel("You have no reservations."));
-            panel.revalidate();
-            panel.repaint();
-            return;
+        try {
+            out.println("GETRESERVATIONS|" + username);
+
+
+            String reply = in.readLine();
+            System.out.println("Server reply: " + reply);
+
+            if (reply == null || reply.equals("NONE") || reply.isEmpty()) {
+                JLabel lbl = new JLabel("You have no reservations.");
+                lbl.setFont(LABEL);
+                panel.add(lbl);
+                panel.revalidate();
+                panel.repaint();
+                return;
+            }
+
+            String[] items = reply.split(":::");
+
+            for (String item : items) {
+                String[] parts = item.split("\\|");
+                if (parts.length < 4) continue;
+
+                String library = parts[0];
+                String topic = parts[1];
+                String book = parts[2];
+                String date = parts[3];
+
+                Reservations r = new Reservations(username, library, topic, book, date);
+                reservations.add(r);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
+ 
         for (Reservations r : reservations) {
-            JPanel card = new JPanel(new GridLayout(2, 1, 5, 5));
-            card.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70)); // let cards stretch horizontally
+            JPanel card = new JPanel(new BorderLayout(5, 5));
+            card.setBackground(Color.WHITE);
+            card.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
             JLabel info = new JLabel(
                     "Library: " + r.getLibrary() +
-                            " | Topic: " + r.getTopic() +
-                            " | Book: " + r.getBook() +
-                            " | Date: " + r.getDate()
+                    " | Topic: " + r.getTopic() +
+                    " | Book: " + r.getBook() +
+                    " | Date: " + r.getDate()
             );
+            info.setFont(LABEL);
+            card.add(info, BorderLayout.CENTER);
 
             JButton cancel = new JButton("Cancel");
-            cancel.addActionListener(e -> {
-                JOptionPane.showMessageDialog(null, "Cancellation request sent!");
-                int confirm = JOptionPane.showConfirmDialog(
-                        ViewReservationsGUI.this,
-                        "Are you sure you want to cancel this reservation?",
-                        "Confirm Cancellation",
-                        JOptionPane.YES_NO_OPTION
-                );
-                if (confirm != JOptionPane.YES_OPTION) return;
+            styleButton(cancel);
+            cancel.setFont(BUTTON);
+            cancel.addActionListener(e -> handleCancel(r));
 
-                // call DataStorage.cancelReservation directly (you provided this method)
-                String result = storage.cancelReservation(username, r.getLibrary(), r.getTopic(), r.getBook(), r.getDate());
-
-                // Map the returned codes to friendly messages
-                String message;
-                if (result == null) {
-                    message = "Unknown response from storage.";
-                } else if (result.startsWith("CANCEL|SUCCESS")) {
-                    message = "Reservation cancelled successfully.";
-                } else if (result.startsWith("CANCEL|NOTFOUND")) {
-                    message = "Reservation not found.";
-                } else if (result.startsWith("CANCEL|ERROR")) {
-                    message = "An error occurred while cancelling.";
-                } else {
-                    // fallback: show raw result
-                    message = result;
-                }
-
-                JOptionPane.showMessageDialog(ViewReservationsGUI.this, message);
-
-                // reload UI to reflect change
-                loadReservations();
-                panel.revalidate();
-                panel.repaint();
-            });
-
-            // add components to card and card to panel
-            card.add(info);
-            card.add(cancel);
+            card.add(cancel, BorderLayout.EAST);
             panel.add(card);
-            panel.add(Box.createRigidArea(new Dimension(0, 5))); // small gap between cards
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
         }
+
         panel.revalidate();
         panel.repaint();
     }
 
-    // Optional
-    public static void main(String[] args) {SwingUtilities.invokeLater(() -> {
-            ViewReservationsGUI gui = new ViewReservationsGUI("testuser");
-            gui.setVisible(true);
-        });
+    private void handleCancel(Reservations r) {
+        try {
+            out.println("CANCEL|" + username + "|" 
+            + r.getLibrary() + "|" 
+            + r.getTopic() + "|" 
+            + r.getBook() + "|" 
+            + r.getDate());
+
+            String reply = in.readLine();
+            System.out.println("Cancel reply: " + reply);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        loadReservations(); // refresh after cancel
+    }
+
+    private void styleButton(JButton btn) {
+        btn.setBackground(PRIMARY);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
     }
 }

@@ -138,28 +138,70 @@ private DataStorage storage = new DataStorage();
     return;
 }
     
- if (msg.startsWith("CANCEL|")) {
+        if (msg.startsWith("GETRESERVATIONS|")) {
 
-    String[] p = msg.split("\\|");
-    if (p.length < 6) {
-        out.println("CANCEL|ERROR|FORMAT");
+        if (parts.length < 2) {
+            out.println("NONE");
+            return;
+        }
+
+        String username = parts[1];
+        System.out.println("Loading reservations for user: " + username);
+
+        
+        List<Reservations> list = storage.getReservationsForUser(username);
+
+        if (list == null || list.isEmpty()) {
+            
+            out.println("NONE");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Reservations r : list) {
+                if (sb.length() > 0) sb.append(":::");
+                sb.append(r.getLibrary()).append("|")
+                  .append(r.getTopic()).append("|")
+                  .append(r.getBook()).append("|")
+                  .append(r.getDate());
+            }
+            out.println(sb.toString());
+        }
+
         return;
     }
 
-    String username = p[1];
-    String library  = p[2];
-    String topic    = p[3];
-    String book     = p[4];
-    String date     = p[5];
+    
+ if (msg.startsWith("CANCEL|")) {
 
-    // استدعاء ميثود داتا ستورج
+    // تقسيم الرسالة بنفس طريقة LOGIN
+    if (parts.length < 6) { 
+        out.println("CANCEL|FAIL|Wrong format");
+        return;
+    }
+
+    String username = parts[1];
+    String library  = parts[2];
+    String topic    = parts[3];
+    String book     = parts[4];
+    String date     = parts[5];
+
+    System.out.println("Cancellation request received for user: " + username);
+
+    // تنفيذ الإلغاء باستخدام DataStorage
     String result = storage.cancelReservation(username, library, topic, book, date);
 
-    out.println(result);   // مثال: CANCEL|SUCCESS أو CANCEL|NOTFOUND أو CANCEL|ERROR
-    return;
+    if (result.equals("CANCEL|SUCCESS")) {
+        out.println("CANCEL|OK");
+        System.out.println("Reservation cancelled successfully for: " + username);
+    } 
+    else if (result.equals("CANCEL|NOTFOUND")) {
+        out.println("CANCEL|FAIL|Not found");
+        System.out.println("Cancel failed (not found) for: " + username);
+    }
+    else {
+        out.println("CANCEL|FAIL|Error");
+        System.out.println("Cancel failed due to error for: " + username);
+    }
+
+  
 }
- //private void outToAll(String msg) {
-        //for (NewClient c : clients) {
-           // c.out.println(msg);
-        //}
     }}
